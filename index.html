@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ma Collection de DVD</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- SECTION CONNEXION / INSCRIPTION -->
+    <section id="login-section">
+      <h1>🔑 Connexion / Inscription</h1>
+  
+      <form id="login-form">
+        <input type="text" id="username" placeholder="Nom d'utilisateur" required />
+        <button type="submit">Se connecter / S'inscrire</button>
+      </form>
+    </section>
+  
+    <!-- 🌐 Barre de navigation (cachée avant connexion) -->
+    <nav id="navbar" class="navbar" style="display:none;">
+      <button id="tab-search" class="nav-btn active">🔍 Chercher un DVD</button>
+      <button id="tab-collection" class="nav-btn">💿 Ma collection</button>
+      <button id="logout-btn" class="nav-btn">🚪 Déconnexion</button>
+    </nav>
+  
+    <!-- SECTION RECHERCHE -->
+    <section id="search-section" style="display:none;">
+      <h1>🔍 Chercher un DVD</h1>
+      <form id="search-form">
+        <input type="text" id="search-input" placeholder="Rechercher un film..." />
+        <button type="submit">Rechercher</button>
+      </form>
+      <div id="results"></div>
+      <div class="loading" id="loading" style="display:none;">Chargement...</div>
+    </section>
+  
+    <!-- SECTION COLLECTION -->
+    <section id="collection-section" style="display:none;">
+      <h1>💿 Ma collection de DVD</h1>
+      <div id="collection-list"></div>
+    </section>
+  
+    <script src="script.js"></script>
+  </body>
+  
+</html>
