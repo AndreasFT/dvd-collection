@@ -1,17 +1,22 @@
 /* =================== CONFIGURATION =================== */
 
+
+
 // Clé API TMDB (remplace par la tienne)
 const API_KEY = "195c3a3949d344fb58e20ae881573f55";
 const BASE_URL = "https://api.themoviedb.org/3";
 
 // Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-analytics.js";
+
 const firebaseConfig = {
     apiKey: "AIzaSyDvotmDZOA8lTeHFszWv9t-VEV0-_osTLk",
     authDomain: "dvd-collection-c043c.firebaseapp.com",
     projectId: "dvd-collection-c043c",
-    storageBucket: "dvd-collection-c043c.appspot.com",
-    messagingSenderId: "1234567890",
-    appId: "1:1234567890:web:abcdef123456"
+    storageBucket: "dvd-collection-c043c.firebasestorage.app",
+    messagingSenderId: "120439800957",
+    appId: "1:120439800957:web:817bcefdf8b05e3751dd14"
 };
 
 // Initialiser Firebase
