@@ -1,4 +1,4 @@
-const API_KEY = "195c3a3949d344fb58e20ae881573f55"; // 🔑 Remplace ici par ta clé TMDB
+const API_KEY = "195c3a3949d344fb58e20ae881573f55"; // 🔑 Remplace par ta clé TMDB
 const IMG_BASE = "https://image.tmdb.org/t/p/w500";
 
 const searchInput = document.getElementById("search-input");
@@ -45,10 +45,15 @@ searchInput.addEventListener("input", async () => {
 
     if (!data.results) return;
 
-    // 🔹 Filtrage : films avec image et description + vote_count > 50
+    // 🔹 Filtrer strictement : films avec image et description non vide
     let filmsFiltres = data.results
-      .filter(film => film.poster_path && film.overview && film.vote_count > 50)
-      .sort((a, b) => b.popularity - a.popularity);
+      .filter(film =>
+        film.poster_path &&
+        film.overview &&
+        film.overview.trim().length > 0 &&
+        film.vote_count > 50 // minimum de votes pour filtrer les films obscurs
+      )
+      .sort((a, b) => b.popularity - a.popularity); // 🔹 tri par popularité décroissante
 
     // 🔹 Supprimer doublons par titre
     const vus = new Set();
