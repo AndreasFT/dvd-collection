@@ -1,8 +1,8 @@
 const API_KEY = "195c3a3949d344fb58e20ae881573f55"; 
 const IMG_BASE = "https://image.tmdb.org/t/p/w500";
 
-// 🔑 Mot de passe hashé (SHA-256) de "Pepito_du_75"
-const HASHED_PASSWORD = "36f7b0c0a0383c0f37b0c3f79974b5c4f6760c71c1eaf1cd69ed172e539e7f68";
+// 🔑 Mot de passe en clair
+const PASSWORD = "Pepito_du_75";
 
 const searchInput = document.getElementById("search-input");
 const resultsDiv = document.getElementById("results");
@@ -80,27 +80,16 @@ function afficherResultats(films) {
         <img src="${IMG_BASE + film.poster_path}" alt="${film.title}">
         <h3>${film.title}</h3>
         <p>${film.overview}</p>
-        <button onclick="demanderMotDePasseAjouter('${film.id}', '${film.title.replace(/'/g, "\\'")}', '${film.poster_path}')">Ajouter</button>
+        <button onclick="demanderMotDePasseAjouter(${film.id}, '${film.title.replace(/'/g, "\\'")}', '${film.poster_path}')">Ajouter</button>
       </div>
     `)
     .join("");
 }
 
-// --- Hash SHA-256 ---
-async function hashMotDePasse(mot) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(mot);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 // --- Ajouter avec mot de passe ---
-async function demanderMotDePasseAjouter(id, titre, image) {
+function demanderMotDePasseAjouter(id, titre, image) {
   const mdp = prompt("Entrez le mot de passe pour ajouter un film :");
-  if (!mdp) return;
-  const hash = await hashMotDePasse(mdp);
-  if (hash === HASHED_PASSWORD) {
+  if (mdp === PASSWORD) {
     ajouterFilm(id, titre, image);
   } else {
     alert("Mot de passe incorrect ❌");
@@ -108,11 +97,9 @@ async function demanderMotDePasseAjouter(id, titre, image) {
 }
 
 // --- Supprimer avec mot de passe ---
-async function demanderMotDePasseSupprimer(id) {
+function demanderMotDePasseSupprimer(id) {
   const mdp = prompt("Entrez le mot de passe pour supprimer un film :");
-  if (!mdp) return;
-  const hash = await hashMotDePasse(mdp);
-  if (hash === HASHED_PASSWORD) {
+  if (mdp === PASSWORD) {
     supprimerFilm(id);
   } else {
     alert("Mot de passe incorrect ❌");
