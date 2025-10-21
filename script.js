@@ -37,7 +37,6 @@ searchInput.addEventListener("input", async () => {
     return;
   }
 
-  // Petit délai pour éviter trop d'appels API pendant la saisie
   dernierTimeout = setTimeout(async () => {
     const response = await fetch(
       `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=fr-FR&query=${encodeURIComponent(query)}&include_adult=false`
@@ -46,12 +45,12 @@ searchInput.addEventListener("input", async () => {
 
     if (!data.results) return;
 
-    // 🔹 Filtrage : garder uniquement les films populaires avec un poster
+    // 🔹 Filtrage : films avec image et description + vote_count > 50
     let filmsFiltres = data.results
-      .filter(film => film.poster_path && film.vote_count > 50)
+      .filter(film => film.poster_path && film.overview && film.vote_count > 50)
       .sort((a, b) => b.popularity - a.popularity);
 
-    // 🔹 Supprimer les doublons (même titre, garder le plus populaire)
+    // 🔹 Supprimer doublons par titre
     const vus = new Set();
     filmsFiltres = filmsFiltres.filter(film => {
       const titre = film.title.toLowerCase();
@@ -73,9 +72,9 @@ function afficherResultats(films) {
   resultsDiv.innerHTML = films
     .map(film => `
       <div class="movie-card">
-        <img src="${film.poster_path ? IMG_BASE + film.poster_path : 'https://via.placeholder.com/200x300'}" alt="${film.title}">
+        <img src="${IMG_BASE + film.poster_path}" alt="${film.title}">
         <h3>${film.title}</h3>
-        <p>${film.overview || "Aucune description disponible."}</p>
+        <p>${film.overview}</p>
         <button onclick="ajouterFilm(${film.id}, '${film.title.replace(/'/g, "\\'")}', '${film.poster_path}')">Ajouter</button>
       </div>
     `)
