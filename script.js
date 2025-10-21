@@ -1,4 +1,4 @@
-const API_KEY = "195c3a3949d344fb58e20ae881573f55"; // 🔑 Remplace ici par ta clé TMDB
+const API_KEY = "INSÈRE_TA_CLÉ_API_TMDB_ICI"; // 🔑 Remplace ici par ta clé TMDB
 const IMG_BASE = "https://image.tmdb.org/t/p/w500";
 
 const searchInput = document.getElementById("search-input");
@@ -26,18 +26,51 @@ tabCollection.addEventListener("click", () => {
   afficherCollection();
 });
 
-// --- Recherche de films ---
+// --- Recherche améliorée ---
+let dernierTimeout = null;
 searchInput.addEventListener("input", async () => {
   const query = searchInput.value.trim();
+  clearTimeout(dernierTimeout);
+
   if (query.length < 2) {
     resultsDiv.innerHTML = "";
     return;
   }
 
-  const response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=fr-FR&query=${query}`);
-  const data = await response.json();
+  // Petit délai pour éviter trop d'appels API pendant la saisie
+  dernierTimeout = setTimeout(async () => {
+    const response = await fetch(
+      `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=fr-FR&query=${encodeURIComponent(query)}&include_adult=false`
+    );
+    const data = await response.json();
 
-  resultsDiv.innerHTML = data.results
+    if (!data.results) return;
+
+    // 🔹 Filtrage : garder uniquement les films populaires avec un poster
+    let filmsFiltres = data.results
+      .filter(film => film.poster_path && film.vote_count > 50)
+      .sort((a, b) => b.popularity - a.popularity);
+
+    // 🔹 Supprimer les doublons (même titre, garder le plus populaire)
+    const vus = new Set();
+    filmsFiltres = filmsFiltres.filter(film => {
+      const titre = film.title.toLowerCase();
+      if (vus.has(titre)) return false;
+      vus.add(titre);
+      return true;
+    });
+
+    afficherResultats(filmsFiltres);
+  }, 400);
+});
+
+function afficherResultats(films) {
+  if (films.length === 0) {
+    resultsDiv.innerHTML = "<p>Aucun film trouvé 😢</p>";
+    return;
+  }
+
+  resultsDiv.innerHTML = films
     .map(film => `
       <div class="movie-card">
         <img src="${film.poster_path ? IMG_BASE + film.poster_path : 'https://via.placeholder.com/200x300'}" alt="${film.title}">
@@ -47,7 +80,7 @@ searchInput.addEventListener("input", async () => {
       </div>
     `)
     .join("");
-});
+}
 
 // --- Ajouter un film à la collection ---
 function ajouterFilm(id, titre, image) {
