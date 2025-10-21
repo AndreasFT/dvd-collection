@@ -1,22 +1,8 @@
 /* =================== CONFIGURATION =================== */
 
+// Clé API TMDB
 const API_KEY = "195c3a3949d344fb58e20ae881573f55";
 const BASE_URL = "https://api.themoviedb.org/3";
-
-// ✅ Firebase v8
-const firebaseConfig = {
-  apiKey: "AIzaSyDvotmDZOA8lTeHFszWv9t-VEV0-_osTLk",
-  authDomain: "dvd-collection-c043c.firebaseapp.com",
-  projectId: "dvd-collection-c043c",
-  storageBucket: "dvd-collection-c043c.appspot.com",
-  messagingSenderId: "120439800957",
-  appId: "1:120439800957:web:817bcefdf8b05e3751dd14"
-};
-
-// Initialisation
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
 
 /* =================== ELEMENTS HTML =================== */
 const loginSection = document.getElementById("login-section");
@@ -37,177 +23,171 @@ const loadingDiv = document.getElementById("loading");
 const registerForm = document.getElementById("register-form");
 const loginForm = document.getElementById("login-form");
 
-let currentUser = null;
+/* =================== UTILISATEUR =================== */
+let currentUser = null; // email
+let users = JSON.parse(localStorage.getItem("users")) || {}; // stockage local des comptes
 
 /* =================== INSCRIPTION =================== */
 registerForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const username = document.getElementById("register-username").value.trim();
-  const email = document.getElementById("register-email").value.trim();
-  const password = document.getElementById("register-password").value.trim();
-  const avatar = document.getElementById("register-avatar").value.trim() || "https://via.placeholder.com/100";
+    e.preventDefault();
+    const username = document.getElementById("register-username").value.trim();
+    const email = document.getElementById("register-email").value.trim();
+    const password = document.getElementById("register-password").value.trim();
+    const avatar = document.getElementById("register-avatar").value.trim() || "https://via.placeholder.com/100";
 
-  auth.createUserWithEmailAndPassword(email, password)
-    .then((userCredential) => {
-      const user = userCredential.user;
+    if (users[email]) {
+        alert("⚠️ Cet email est déjà utilisé !");
+        return;
+    }
 
-      db.collection("users").doc(user.uid).set({
-        username,
-        email,
-        avatar,
-        collection: []
-      });
+    users[email] = { username, email, password, avatar, collection: [] };
+    localStorage.setItem("users", JSON.stringify(users));
 
-      alert("✅ Compte créé avec succès !");
-      registerForm.reset();
-    })
-    .catch((error) => alert(error.message));
+    alert("✅ Compte créé !");
+    registerForm.reset();
 });
 
 /* =================== CONNEXION =================== */
 loginForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const email = document.getElementById("login-email").value.trim();
-  const password = document.getElementById("login-password").value.trim();
+    e.preventDefault();
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value.trim();
 
-  auth.signInWithEmailAndPassword(email, password)
-    .then((userCredential) => {
-      const user = userCredential.user;
-      currentUser = user.uid;
+    if (!users[email] || users[email].password !== password) {
+        alert("❌ Identifiants incorrects !");
+        return;
+    }
 
-      loginSection.style.display = "none";
-      navbar.style.display = "flex";
-      searchSection.style.display = "block";
+    currentUser = email;
+    loginSection.style.display = "none";
+    navbar.style.display = "flex";
+    searchSection.style.display = "block";
 
-      displayCollection();
-    })
-    .catch((error) => alert(error.message));
+    displayCollection();
 });
 
 /* =================== DECONNEXION =================== */
 logoutBtn.addEventListener("click", () => {
-  auth.signOut().then(() => {
     currentUser = null;
     loginSection.style.display = "block";
     navbar.style.display = "none";
     searchSection.style.display = "none";
     collectionSection.style.display = "none";
-  });
 });
 
-/* =================== COLLECTION =================== */
-async function getCollection() {
-  if (!currentUser) return [];
-  const doc = await db.collection("users").doc(currentUser).get();
-  return doc.exists ? doc.data().collection || [] : [];
+/* =================== COLLECTION (LocalStorage) =================== */
+function getCollection() {
+    if (!currentUser) return [];
+    return users[currentUser].collection || [];
 }
 
-async function saveCollection(collection) {
-  if (!currentUser) return;
-  await db.collection("users").doc(currentUser).update({ collection });
+function saveCollection(collection) {
+    if (!currentUser) return;
+    users[currentUser].collection = collection;
+    localStorage.setItem("users", JSON.stringify(users));
 }
 
-async function addToCollection(movie) {
-  let collection = await getCollection();
-  if (collection.some(m => m.id === movie.id)) {
-    alert("🎬 Ce film est déjà dans ta collection !");
-    return;
-  }
-  collection.push(movie);
-  await saveCollection(collection);
-  alert(`✅ "${movie.title}" ajouté à ta collection !`);
-  displayCollection();
+function addToCollection(movie) {
+    let collection = getCollection();
+    if (collection.some(m => m.id === movie.id)) {
+        alert("🎬 Ce film est déjà dans ta collection !");
+        return;
+    }
+    collection.push(movie);
+    saveCollection(collection);
+    alert(`✅ "${movie.title}" a été ajouté à ta collection !`);
+    displayCollection();
 }
 
-async function removeFromCollection(id) {
-  let collection = await getCollection();
-  collection = collection.filter(m => m.id !== id);
-  await saveCollection(collection);
-  displayCollection();
+function removeFromCollection(id) {
+    let collection = getCollection();
+    collection = collection.filter(m => m.id !== id);
+    saveCollection(collection);
+    displayCollection();
 }
 
-async function displayCollection() {
-  const collection = await getCollection();
-  collectionList.innerHTML = "";
+function displayCollection() {
+    const collection = getCollection();
+    collectionList.innerHTML = "";
 
-  if (collection.length === 0) {
-    collectionList.innerHTML = "<p>Ta collection est vide 😢</p>";
-    return;
-  }
+    if (collection.length === 0) {
+        collectionList.innerHTML = "<p>Ta collection est vide 😢</p>";
+        return;
+    }
 
-  collection.forEach((movie) => {
-    const div = document.createElement("div");
-    div.classList.add("movie");
-    const imageUrl = movie.poster_path
-      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-      : "https://via.placeholder.com/300x450?text=Pas+d'image";
+    collection.forEach((movie) => {
+        const div = document.createElement("div");
+        div.classList.add("movie");
+        const imageUrl = movie.poster_path
+            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+            : "https://via.placeholder.com/300x450?text=Pas+d'image";
 
-    div.innerHTML = `
-      <img src="${imageUrl}" alt="${movie.title}" />
-      <h2>${movie.title}</h2>
-      <p>${movie.overview || "Aucune description disponible."}</p>
-      <button class="remove-btn">🗑️ Supprimer</button>
-    `;
+        div.innerHTML = `
+            <img src="${imageUrl}" alt="${movie.title}" />
+            <h2>${movie.title}</h2>
+            <p>${movie.overview || "Aucune description disponible."}</p>
+            <button class="remove-btn">🗑️ Supprimer</button>
+        `;
 
-    div.querySelector(".remove-btn").addEventListener("click", () => removeFromCollection(movie.id));
-    collectionList.appendChild(div);
-  });
+        div.querySelector(".remove-btn").addEventListener("click", () => removeFromCollection(movie.id));
+        collectionList.appendChild(div);
+    });
 }
 
 /* =================== ONGLETS =================== */
 tabSearch.addEventListener("click", () => {
-  searchSection.style.display = "block";
-  collectionSection.style.display = "none";
-  tabSearch.classList.add("active");
-  tabCollection.classList.remove("active");
+    searchSection.style.display = "block";
+    collectionSection.style.display = "none";
+    tabSearch.classList.add("active");
+    tabCollection.classList.remove("active");
 });
 
 tabCollection.addEventListener("click", () => {
-  searchSection.style.display = "none";
-  collectionSection.style.display = "block";
-  tabCollection.classList.add("active");
-  tabSearch.classList.remove("active");
-  displayCollection();
+    searchSection.style.display = "none";
+    collectionSection.style.display = "block";
+    tabCollection.classList.add("active");
+    tabSearch.classList.remove("active");
+    displayCollection();
 });
 
 /* =================== RECHERCHE TMDB =================== */
 searchForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const query = searchInput.value.trim();
-  if (!query) return;
+    e.preventDefault();
+    const query = searchInput.value.trim();
+    if (!query) return;
 
-  resultsDiv.innerHTML = "";
-  loadingDiv.style.display = "block";
+    resultsDiv.innerHTML = "";
+    loadingDiv.style.display = "block";
 
-  try {
-    const response = await fetch(`${BASE_URL}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}&language=fr-FR`);
-    const data = await response.json();
+    try {
+        const response = await fetch(`${BASE_URL}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}&language=fr-FR`);
+        const data = await response.json();
 
-    if (data.results.length === 0) {
-      resultsDiv.innerHTML = "<p>Aucun film trouvé.</p>";
-    } else {
-      data.results.forEach((movie) => {
-        const movieDiv = document.createElement("div");
-        movieDiv.classList.add("movie");
-        const imageUrl = movie.poster_path
-          ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-          : "https://via.placeholder.com/300x450?text=Pas+d'image";
+        if (data.results.length === 0) {
+            resultsDiv.innerHTML = "<p>Aucun film trouvé.</p>";
+        } else {
+            data.results.forEach((movie) => {
+                const movieDiv = document.createElement("div");
+                movieDiv.classList.add("movie");
+                const imageUrl = movie.poster_path
+                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                    : "https://via.placeholder.com/300x450?text=Pas+d'image";
 
-        movieDiv.innerHTML = `
-          <img src="${imageUrl}" alt="${movie.title}" />
-          <h2>${movie.title}</h2>
-          <p>${movie.overview || "Aucune description disponible."}</p>
-          <button class="add-btn">➕ Ajouter le DVD</button>
-        `;
+                movieDiv.innerHTML = `
+                    <img src="${imageUrl}" alt="${movie.title}" />
+                    <h2>${movie.title}</h2>
+                    <p>${movie.overview || "Aucune description disponible."}</p>
+                    <button class="add-btn">➕ Ajouter le DVD</button>
+                `;
 
-        movieDiv.querySelector(".add-btn").addEventListener("click", () => addToCollection(movie));
-        resultsDiv.appendChild(movieDiv);
-      });
+                movieDiv.querySelector(".add-btn").addEventListener("click", () => addToCollection(movie));
+                resultsDiv.appendChild(movieDiv);
+            });
+        }
+    } catch (error) {
+        console.error("Erreur:", error);
+        resultsDiv.innerHTML = "<p>Une erreur est survenue.</p>";
+    } finally {
+        loadingDiv.style.display = "none";
     }
-  } catch (error) {
-    console.error("Erreur:", error);
-    resultsDiv.innerHTML = "<p>Une erreur est survenue.</p>";
-  } finally {
-    loadingDiv.style.display = "none";
-  }
 });
