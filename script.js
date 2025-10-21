@@ -1,7 +1,9 @@
 // --- Supabase setup ---
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.35.0/dist/supabase.es.js';
+
 const SUPABASE_URL = "https://bnbhfvpmyuynrqcvqrfx.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJuYmhmdnBteXV5bnJxcmZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwNDg0NTIsImV4cCI6MjA3NjYyNDQ1Mn0.U2xm2QFpnZTqoQdSVyrl1WcTzyWRR63wMxEsc_04Aw0";
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_ANON_KEY = "ta_anon_key_ici";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const PASSWORD = "Pepito_du_75";
 const API_KEY = "195c3a3949d344fb58e20ae881573f55";
@@ -42,25 +44,29 @@ searchInput.addEventListener("input", async () => {
   if (query.length < 2) { resultsDiv.innerHTML = ""; return; }
 
   dernierTimeout = setTimeout(async () => {
-    const response = await fetch(
-      `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=fr-FR&query=${encodeURIComponent(query)}&include_adult=false`
-    );
-    const data = await response.json();
-    if (!data.results) return;
+    try {
+      const response = await fetch(
+        `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=fr-FR&query=${encodeURIComponent(query)}&include_adult=false`
+      );
+      const data = await response.json();
+      if (!data.results) return;
 
-    let filmsFiltres = data.results
-      .filter(f => f.poster_path && f.overview && f.overview.trim() && f.vote_count > 50)
-      .sort((a,b) => b.popularity - a.popularity);
+      let filmsFiltres = data.results
+        .filter(f => f.poster_path && f.overview && f.overview.trim() && f.vote_count > 50)
+        .sort((a,b) => b.popularity - a.popularity);
 
-    const vus = new Set();
-    filmsFiltres = filmsFiltres.filter(f => {
-      const titre = f.title.toLowerCase();
-      if (vus.has(titre)) return false;
-      vus.add(titre);
-      return true;
-    });
+      const vus = new Set();
+      filmsFiltres = filmsFiltres.filter(f => {
+        const titre = f.title.toLowerCase();
+        if (vus.has(titre)) return false;
+        vus.add(titre);
+        return true;
+      });
 
-    afficherResultats(filmsFiltres);
+      afficherResultats(filmsFiltres);
+    } catch (err) {
+      console.error("Erreur TMDB :", err);
+    }
   }, 400);
 });
 
@@ -78,7 +84,8 @@ function afficherResultats(films) {
 }
 
 // --- Ajouter film ---
-async function ajouterFilmSupabase(film) {
+window.ajouterFilmSupabase = async function(film) {
+  if (!supabase) return alert("Supabase non initialisé ❌");
   const mdp = prompt("Entrez le mot de passe pour ajouter un film :");
   if (mdp !== PASSWORD) { alert("Mot de passe incorrect ❌"); return; }
 
@@ -91,7 +98,8 @@ async function ajouterFilmSupabase(film) {
 }
 
 // --- Supprimer film ---
-async function supprimerFilmSupabase(id) {
+window.supprimerFilmSupabase = async function(id) {
+  if (!supabase) return alert("Supabase non initialisé ❌");
   const mdp = prompt("Entrez le mot de passe pour supprimer un film :");
   if (mdp !== PASSWORD) { alert("Mot de passe incorrect ❌"); return; }
 
@@ -105,6 +113,8 @@ async function supprimerFilmSupabase(id) {
 
 // --- Afficher collection ---
 async function afficherCollection(filter="") {
+  if (!supabase) return collectionDiv.innerHTML = "<p>Supabase non initialisé ❌</p>";
+
   let { data: collection, error } = await supabase
     .from('collection')
     .select('*');
