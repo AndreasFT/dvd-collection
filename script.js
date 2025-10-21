@@ -95,7 +95,7 @@ async function hashMotDePasse(mot) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// --- Ajouter un film avec mot de passe ---
+// --- Ajouter avec mot de passe ---
 async function demanderMotDePasseAjouter(id, titre, image) {
   const mdp = prompt("Entrez le mot de passe pour ajouter un film :");
   if (!mdp) return;
@@ -107,7 +107,7 @@ async function demanderMotDePasseAjouter(id, titre, image) {
   }
 }
 
-// --- Supprimer un film avec mot de passe ---
+// --- Supprimer avec mot de passe ---
 async function demanderMotDePasseSupprimer(id) {
   const mdp = prompt("Entrez le mot de passe pour supprimer un film :");
   if (!mdp) return;
@@ -129,15 +129,20 @@ function ajouterFilm(id, titre, image) {
   collection.push({ id, titre, image });
   localStorage.setItem("maCollection", JSON.stringify(collection));
   alert("Film ajouté à votre collection !");
+  afficherCollection();
 }
 
-// --- Afficher collection ---
+// --- Afficher la collection (tri alphabétique) ---
 function afficherCollection() {
   let collection = JSON.parse(localStorage.getItem("maCollection")) || [];
+
   if (collection.length === 0) {
     collectionDiv.innerHTML = "<p>Votre collection est vide 😢</p>";
     return;
   }
+
+  // 🔹 Tri alphabétique
+  collection.sort((a, b) => a.titre.localeCompare(b.titre, 'fr', { sensitivity: 'base' }));
 
   collectionDiv.innerHTML = collection
     .map(film => `
