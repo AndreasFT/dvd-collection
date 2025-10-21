@@ -1,4 +1,4 @@
-const API_KEY = "INSÈRE_TA_CLÉ_API_TMDB_ICI"; // 🔑 Remplace ici par ta clé TMDB
+const API_KEY = "195c3a3949d344fb58e20ae881573f55"; // 🔑 Remplace ici par ta clé TMDB
 const IMG_BASE = "https://image.tmdb.org/t/p/w500";
 
 const searchInput = document.getElementById("search-input");
