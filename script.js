@@ -1,6 +1,6 @@
 // --- Supabase setup ---
 const SUPABASE_URL = "https://bnbhfvpmyuynrqcvqrfx.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJuYmhmdnBteXV5bnJxY3ZxcmZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwNDg0NTIsImV4cCI6MjA3NjYyNDQ1Mn0.U2xm2QFpnZTqoQdSVyrl1WcTzyWRR63wMxEsc_04Aw0";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJuYmhmdnBteXV5bnJxcmZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwNDg0NTIsImV4cCI6MjA3NjYyNDQ1Mn0.U2xm2QFpnZTqoQdSVyrl1WcTzyWRR63wMxEsc_04Aw0";
 const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const PASSWORD = "Pepito_du_75";
@@ -50,7 +50,7 @@ searchInput.addEventListener("input", async () => {
 
     let filmsFiltres = data.results
       .filter(f => f.poster_path && f.overview && f.overview.trim() && f.vote_count > 50)
-      .sort((a,b)=>b.popularity - a.popularity);
+      .sort((a,b) => b.popularity - a.popularity);
 
     const vus = new Set();
     filmsFiltres = filmsFiltres.filter(f => {
@@ -125,7 +125,7 @@ async function afficherCollection(filter="") {
 
   collectionDiv.innerHTML = collection.map(film => `
     <div class="movie-card">
-      <img src="${film.image ? IMG_BASE+film.image : 'https://via.placeholder.com/200x300'}" alt="${film.titre}">
+      <img src="${film.image.startsWith('http') ? film.image : IMG_BASE+film.image}" alt="${film.titre}">
       <h3>${film.titre}</h3>
       <button onclick="supprimerFilmSupabase(${film.id})">Supprimer</button>
     </div>
@@ -133,4 +133,4 @@ async function afficherCollection(filter="") {
 }
 
 // --- Recherche dans la collection ---
-searchCollectionInput.addEventListener("input", ()=>afficherCollection(searchCollectionInput.value.trim()));
+searchCollectionInput.addEventListener("input", () => afficherCollection(searchCollectionInput.value.trim()));
