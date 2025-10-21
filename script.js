@@ -1,19 +1,20 @@
 const API_KEY = "195c3a3949d344fb58e20ae881573f55"; 
 const IMG_BASE = "https://image.tmdb.org/t/p/w500";
 
-// 🔑 Mot de passe en clair
+// Mot de passe
 const PASSWORD = "Pepito_du_75";
 
 const searchInput = document.getElementById("search-input");
 const resultsDiv = document.getElementById("results");
 const collectionDiv = document.getElementById("collection");
+const searchCollectionInput = document.getElementById("search-collection-input");
 
 const tabSearch = document.getElementById("tab-search");
 const tabCollection = document.getElementById("tab-collection");
 const searchSection = document.getElementById("search-section");
 const collectionSection = document.getElementById("collection-section");
 
-// --- Navigation ---
+// Navigation onglets
 tabSearch.addEventListener("click", () => {
   tabSearch.classList.add("active");
   tabCollection.classList.remove("active");
@@ -29,7 +30,7 @@ tabCollection.addEventListener("click", () => {
   afficherCollection();
 });
 
-// --- Recherche ---
+// Recherche TMDB
 let dernierTimeout = null;
 searchInput.addEventListener("input", async () => {
   const query = searchInput.value.trim();
@@ -86,7 +87,7 @@ function afficherResultats(films) {
     .join("");
 }
 
-// --- Ajouter avec mot de passe ---
+// Ajouter avec mot de passe
 function demanderMotDePasseAjouter(id, titre, image) {
   const mdp = prompt("Entrez le mot de passe pour ajouter un film :");
   if (mdp === PASSWORD) {
@@ -96,7 +97,7 @@ function demanderMotDePasseAjouter(id, titre, image) {
   }
 }
 
-// --- Supprimer avec mot de passe ---
+// Supprimer avec mot de passe
 function demanderMotDePasseSupprimer(id) {
   const mdp = prompt("Entrez le mot de passe pour supprimer un film :");
   if (mdp === PASSWORD) {
@@ -106,7 +107,7 @@ function demanderMotDePasseSupprimer(id) {
   }
 }
 
-// --- Ajouter un film ---
+// Ajouter un film
 function ajouterFilm(id, titre, image) {
   let collection = JSON.parse(localStorage.getItem("maCollection")) || [];
   if (collection.some(f => f.id === id)) {
@@ -116,11 +117,11 @@ function ajouterFilm(id, titre, image) {
   collection.push({ id, titre, image });
   localStorage.setItem("maCollection", JSON.stringify(collection));
   alert("Film ajouté à votre collection !");
-  afficherCollection();
+  afficherCollection(searchCollectionInput.value.trim());
 }
 
-// --- Afficher la collection (tri alphabétique) ---
-function afficherCollection() {
+// Afficher collection (tri alphabétique + filtre recherche)
+function afficherCollection(filter = "") {
   let collection = JSON.parse(localStorage.getItem("maCollection")) || [];
 
   if (collection.length === 0) {
@@ -128,7 +129,13 @@ function afficherCollection() {
     return;
   }
 
-  // 🔹 Tri alphabétique
+  // Filtre recherche collection
+  if (filter.length > 0) {
+    const lowerFilter = filter.toLowerCase();
+    collection = collection.filter(film => film.titre.toLowerCase().includes(lowerFilter));
+  }
+
+  // Tri alphabétique
   collection.sort((a, b) => a.titre.localeCompare(b.titre, 'fr', { sensitivity: 'base' }));
 
   collectionDiv.innerHTML = collection
@@ -140,12 +147,16 @@ function afficherCollection() {
       </div>
     `)
     .join("");
+
+  if (collection.length === 0) {
+    collectionDiv.innerHTML = "<p>Aucun film trouvé dans votre collection 😢</p>";
+  }
 }
 
-// --- Supprimer un film ---
+// Supprimer un film
 function supprimerFilm(id) {
   let collection = JSON.parse(localStorage.getItem("maCollection")) || [];
   collection = collection.filter(f => f.id !== id);
   localStorage.setItem("maCollection", JSON.stringify(collection));
-  afficherCollection();
+  afficherCollection(searchCollectionInput.value.trim());
 }

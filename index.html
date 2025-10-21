@@ -1,31 +1,29 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ma Collection de DVD</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
   <header>
-    <h1>🎬 Ma Collection de DVD</h1>
+    <h1>Ma Collection de DVD</h1>
+    <nav>
+      <button id="tab-search" class="active">Recherche</button>
+      <button id="tab-collection">Ma collection</button>
+    </nav>
   </header>
 
-  <nav>
-    <button id="tab-search" class="active">🔍 Recherche</button>
-    <button id="tab-collection">📀 Ma Collection</button>
-  </nav>
-
+  <!-- Onglet Recherche -->
   <section id="search-section">
-    <div id="search-bar">
-      <input type="text" id="search-input" placeholder="Rechercher un film..." />
-    </div>
+    <input type="text" id="search-input" placeholder="Rechercher un film...">
     <div id="results"></div>
   </section>
 
-  <section id="collection-section" style="display: none;">
-    <h2>Ma Collection</h2>
+  <!-- Onglet Collection -->
+  <section id="collection-section" style="display:none;">
+    <input type="text" id="search-collection-input" placeholder="Rechercher dans ma collection...">
     <div id="collection"></div>
   </section>
 
